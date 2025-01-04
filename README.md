@@ -1,8 +1,8 @@
 # BeatLeaderWidget
 BeatLeader Scriptable widget for iOS that shows a selected player's stats
 
-<img src="https://github.com/user-attachments/assets/ca8cae2b-9bcf-4dec-a3dd-912f3717a04c" height="500">
-<img src="https://github.com/user-attachments/assets/b76f8936-6f82-4a2d-8226-bc05710bc088" height="500">
+<img src="https://github.com/user-attachments/assets/ca8cae2b-9bcf-4dec-a3dd-912f3717a04c" height="300">
+<img src="https://github.com/user-attachments/assets/b76f8936-6f82-4a2d-8226-bc05710bc088" height="300">
 
 
 To set things up: 
