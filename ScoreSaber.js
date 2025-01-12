@@ -1,45 +1,32 @@
-// BEATLEADER VERSION
+// SCORESABER VERSION
 
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: purple; icon-glyph: window-restore;
 
-// BeatLeader.js 1.0.0 by ckosmic
+// ScoreSaber.js 1.0.0 by Speecil
 
 let userId = args.widgetParameter;
 
-const apiBaseUrl = "https://api.beatleader.xyz";
-const playersEndpoint = `${apiBaseUrl}/players`;
+const apiBaseUrl = "https://scoresaber.com/api";
 const playerEndpoint = `${apiBaseUrl}/player`;
 
-// If user ID is not provided, grab player #1's user ID
-if(userId == null || userId === "" || userId === undefined) {
-  const req = new Request(playersEndpoint);
-  const res = await req.loadJSON();
-  
-  userId = res.data[0].id;
+if(!userId){
+  userId = "3033139560125578";
 }
 
-//userId = "ckosmic"
-
-const playerApiUrl = `${playerEndpoint}/${userId}`;
-const historyEndpoint = `${playerApiUrl}/history`;
+const playerApiUrl = `${playerEndpoint}/${userId}/full`;
+const playerTopPlayApiUrl = `${playerEndpoint}/${userId}/scores?limit=1&sort=top&page=1`;
 
 const playerReq = new Request(playerApiUrl);
 const playerRes = await playerReq.loadJSON();
 
-const historyReq = new Request(historyEndpoint);
-const historyRes = await historyReq.loadJSON();
+const playerTopPlayReq = new Request(playerTopPlayApiUrl);
+const playerTopPlayRes = await playerTopPlayReq.loadJSON();
 
-const rankHistory = historyRes.map(x => x.rank).reverse();
-const cankHistory = historyRes.map(x => x.countryRank).reverse();
-const ppHistory = historyRes.map(x => x.pp).reverse();
-const accHistory = historyRes.map(x => x.averageRankedAccuracy).reverse();
-const plyHistory = historyRes.map(x => x.totalPlayCount).reverse();
-const topPpHistory = historyRes.map(x => x.topPp).reverse();
+const rankHistory = playerRes.histories.split(',');
 
-
-const avatarUrl = playerRes.avatar;
+const avatarUrl = playerRes.profilePicture;
 const avatarReq = await new Request(avatarUrl);
 const avatarImg = await avatarReq.loadImage();
 
@@ -84,7 +71,7 @@ const createWidget = () => {
   
   const headerStack = w.addStack();
   headerStack.centerAlignContent();
-  headerStack.url = `https://beatleader.xyz/u/${userId}`;
+  headerStack.url = `https://scoresaber.com/u/${userId}`;
   
   const avatarImage = headerStack.addImage(avatarImg);
   avatarImage.imageSize = new Size(30, 30);
@@ -99,7 +86,7 @@ const createWidget = () => {
     titleElement.font = Font.boldRoundedSystemFont(18);
     titleElement.lineLimit = 1;
   
-    const blElement = headerStack.addText(" - BeatLeader");
+    const blElement = headerStack.addText(" - ScoreSaber");
     blElement.textColor = Color.white();
     blElement.textOpacity = 0.7;
     blElement.font = Font.mediumRoundedSystemFont(14);
@@ -148,20 +135,13 @@ const createWidget = () => {
       rankDiffElement.textColor = rankDiff < 0 ? Color.red() : rankDiff > 0 ? Color.green() : Color.lightGray();
       rankDiffElement.font = Font.lightRoundedSystemFont(fontSize);
     }
-    
+
     const cankStack = headerRankStack.addStack();
     const cankElement = cankStack.addText(`${flagEmoji} #${formatNumber(playerRes.countryRank)}`);
     cankElement.textColor = Color.white();
     cankElement.font = Font.lightRoundedSystemFont(fontSize);
     cankElement.lineLimit = 1;
     cankStack.addSpacer(4);
-    const cankDiff = cankHistory.slice(-diffDaysAgo)[0] - playerRes.countryRank;
-    const cankArrow = cankDiff < 0 ? downArrow : cankDiff > 0 ? upArrow : noChange;
-    if (cankArrow !== noChange) {
-      const cankDiffElement = cankStack.addText(`${cankArrow} ${formatNumber(Math.abs(cankDiff))}`);
-      cankDiffElement.textColor = cankDiff < 0 ? Color.red() : cankDiff > 0 ? Color.green() : Color.lightGray();
-      cankDiffElement.font = Font.lightRoundedSystemFont(fontSize);
-    }
   }
   
   const ppHeaderElement = leftStack.addText("Performance points");
@@ -174,30 +154,16 @@ const createWidget = () => {
   ppElement.font = Font.lightRoundedSystemFont(fontSize);
   ppElement.lineLimit = 1;
   ppStack.addSpacer(8);
-  const ppDiff = playerRes.pp - ppHistory.slice(-diffDaysAgo)[0];
-  const ppArrow = ppDiff < 0 ? downArrow : ppDiff > 0 ? upArrow : noChange;
-  if (ppArrow !== noChange) {
-    const ppDiffElement = ppStack.addText(`${ppArrow} ${formatNumber(Math.abs(ppDiff))}`);
-    ppDiffElement.textColor = ppDiff < 0 ? Color.red() : ppDiff > 0 ? Color.green() : Color.lightGray();
-    ppDiffElement.font = Font.lightRoundedSystemFont(fontSize);
-  }
   
   const accHeaderElement = leftStack.addText("Average accuracy");
   accHeaderElement.textColor = Color.white();
   accHeaderElement.font = Font.boldRoundedSystemFont(fontSize);
   
   const accStack = leftStack.addStack();
-  const accElement = accStack.addText(playerRes.scoreStats?.averageRankedAccuracy ? (Math.round(playerRes.scoreStats.averageRankedAccuracy * 10000) / 100 + "%") : "N/A");
+  const accElement = accStack.addText(playerRes.scoreStats?.averageRankedAccuracy ? (Math.round(playerRes.scoreStats.averageRankedAccuracy) + "%") : "N/A");
   accElement.textColor = Color.white();
   accElement.font = Font.lightRoundedSystemFont(fontSize);
   accStack.addSpacer(8);
-  const accDiff = Math.round((playerRes.scoreStats.averageRankedAccuracy - accHistory.slice(-diffDaysAgo)[0]) * 10000) / 100;
-  const accArrow = accDiff < 0 ? downArrow : accDiff > 0 ? upArrow : noChange;
-  if (accArrow !== noChange) {
-    const accDiffElement = accStack.addText(`${accArrow} ${formatNumber(Math.abs(accDiff))}`);
-    accDiffElement.textColor = accDiff < 0 ? Color.red() : accDiff > 0 ? Color.green() : Color.lightGray();
-    accDiffElement.font = Font.lightRoundedSystemFont(fontSize);
-  }
   
   if(widgetSize !== "small") {
     statsStack.addSpacer(null);
@@ -216,13 +182,7 @@ const createWidget = () => {
     cankElement.textColor = Color.white();
     cankElement.font = Font.lightRoundedSystemFont(fontSize);
     cankStack.addSpacer(8);
-    const cankDiff = cankHistory.slice(-diffDaysAgo)[0] - playerRes.countryRank;
-    const cankArrow = cankDiff < 0 ? downArrow : cankDiff > 0 ? upArrow : noChange;
-    if (cankArrow !== noChange) {
-      const cankDiffElement = cankStack.addText(`${cankArrow} ${formatNumber(Math.abs(cankDiff))}`);
-      cankDiffElement.textColor = cankDiff < 0 ? Color.red() : cankDiff > 0 ? Color.green() : Color.lightGray();
-      cankDiffElement.font = Font.lightRoundedSystemFont(fontSize);
-    }
+    
   }
   
   const topPpHeaderElement = rightStack.addText("Top PP");
@@ -230,17 +190,10 @@ const createWidget = () => {
   topPpHeaderElement.font = Font.boldRoundedSystemFont(fontSize);
   
   const topPpStack = rightStack.addStack();
-  const topPpElement = topPpStack.addText(playerRes.scoreStats?.topPp ? (formatNumber(playerRes.scoreStats.topPp) + "pp") : "N/A");
+  const topPpElement = topPpStack.addText(playerTopPlayRes.playerScores[0]?.score.pp ? (formatNumber(playerTopPlayRes.playerScores[0]?.score.pp) + "pp") : "N/A");
   topPpElement.textColor = Color.white();
   topPpElement.font = Font.lightRoundedSystemFont(fontSize);
   topPpStack.addSpacer(8);
-  const topPpDiff = playerRes.scoreStats.topPp - topPpHistory.slice(-diffDaysAgo)[0];
-  const topPpArrow = topPpDiff < 0 ? downArrow : topPpDiff > 0 ? upArrow : noChange;
-  if (topPpArrow !== noChange) {
-    const topPpDiffElement = topPpStack.addText(`${topPpArrow} ${formatNumber(Math.abs(topPpDiff))}`);
-    topPpDiffElement.textColor = topPpDiff < 0 ? Color.red() : topPpDiff > 0 ? Color.green() : Color.lightGray();
-    topPpDiffElement.font = Font.lightRoundedSystemFont(fontSize);
-  }
   
   if (widgetSize === "big") {
     const plyHeaderElement = rightStack.addText("Play count");
@@ -252,13 +205,7 @@ const createWidget = () => {
     plyElement.textColor = Color.white();
     plyElement.font = Font.lightRoundedSystemFont(fontSize);
     plyStack.addSpacer(8);
-    const plyDiff = playerRes.scoreStats.totalPlayCount - plyHistory.slice(-diffDaysAgo)[0];
-    const plyArrow = plyDiff < 0 ? downArrow : plyDiff > 0 ? upArrow : noChange;
-    if (plyArrow !== noChange) {
-      const plyDiffElement = plyStack.addText(`${plyArrow} ${formatNumber(Math.abs(plyDiff))}`);
-      plyDiffElement.textColor = plyDiff < 0 ? Color.red() : plyDiff > 0 ? Color.green() : Color.lightGray();
-      plyDiffElement.font = Font.lightRoundedSystemFont(fontSize);
-    }
+    
   }
   
   statsStack.addSpacer(null);
@@ -367,13 +314,13 @@ const createWidget = () => {
     
       context.setTextAlignedCenter();
       const rankRect = new Rect(lineX-50, graphRect.y+320, 100, 23);  
-      let text = (rankHistory.length - Math.floor(x));
-      if(text === 0) text = "now";
+      let text = (rankHistory.length - Math.floor(x)) + 1;
+      if(text === 1) text = "now";
 	    drawTextR(text, rankRect, Color.gray(), Font.boldRoundedSystemFont(19));
     }
   
     const rankRect = new Rect(graphRect.x, graphRect.y - 40, graphRect.width, 30);
-    drawTextR(`Rank over the past ${rankHistory.length} days`, rankRect, Color.white(), Font.boldRoundedSystemFont(24));
+    drawTextR(`Rank over the past ${rankHistory.length + 1} days`, rankRect, Color.white(), Font.boldRoundedSystemFont(24));
   
     drawGraphLine(rankHistory, Color.blue());
   }
